@@ -1,4 +1,4 @@
-class Api::SecretMessagesController < ApplicationController
+class Api::SecretMessagesController < BasicAuthController
   def index
     render json: SecretMessage.all
   end
