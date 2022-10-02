@@ -4,6 +4,6 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "articles#index"
   namespace :api do
-    resources :secret_messages, only: [:index, :create]
+    resources :secret_messages, only: [:index, :create, :update]
   end
 end

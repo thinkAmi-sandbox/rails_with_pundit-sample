@@ -10,12 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_01_110542) do
+ActiveRecord::Schema[7.0].define(version: 2022_10_01_234046) do
   create_table "secret_messages", force: :cascade do |t|
     t.string "title"
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "owner_id"
+    t.index ["owner_id"], name: "index_secret_messages_on_owner_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -25,4 +27,5 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_01_110542) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "secret_messages", "users", column: "owner_id"
 end
