@@ -1,13 +1,17 @@
 class Api::SecretMessagePolicy < ApplicationPolicy
   def index?
-    true
+    chief_retainer?
   end
 
   def create?
-    true
+    chief_retainer?
   end
 
   def update?
-    record.owner == user
+    chief_retainer? && record.owner == user
+  end
+
+  private def chief_retainer?
+    user.has_role? :chief_retainer
   end
 end

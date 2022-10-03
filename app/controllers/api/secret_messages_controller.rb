@@ -1,11 +1,13 @@
 class Api::SecretMessagesController < BasicAuthController
   def index
-    skip_authorization # 認証OKなら誰でも見れる
+    authorize SecretMessage
+
     render json: SecretMessage.all
   end
 
   def create
-    skip_authorization # 認証OKなら誰でも作れる
+    authorize SecretMessage
+
     SecretMessage.create(create_params)
 
     render status: :created
