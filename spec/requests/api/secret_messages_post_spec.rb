@@ -44,11 +44,15 @@ RSpec.describe "Api::SecretMessages", type: :request do
         end
       end
 
-      context 'ｋ'
+      context '家老ロールなし' do
+        let(:karo) { create(:user, name: 'karo', password: 'ps') }
 
+        it '失敗' do
+          get api_secret_messages_path, headers: { HTTP_AUTHORIZATION: valid_basic_auth }
 
-
-
+          expect(response).to have_http_status(403)
+        end
+      end
     end
     
     context '誤ったAuthorizationヘッダ' do

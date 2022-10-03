@@ -8,10 +8,14 @@ class Api::SecretMessagePolicy < ApplicationPolicy
   end
 
   def update?
-    chief_retainer? && record.owner == user
+    author?
   end
 
   private def chief_retainer?
     user.has_role? :chief_retainer
+  end
+
+  private def author?
+    chief_retainer? && record.authors.exists?(user: user)
   end
 end

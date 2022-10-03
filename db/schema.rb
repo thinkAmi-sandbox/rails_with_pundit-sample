@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_02_124719) do
+ActiveRecord::Schema[7.0].define(version: 2022_10_03_110255) do
+  create_table "authors", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "secret_message_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["secret_message_id"], name: "index_authors_on_secret_message_id"
+    t.index ["user_id"], name: "index_authors_on_user_id"
+  end
+
   create_table "roles", force: :cascade do |t|
     t.string "name"
     t.string "resource_type"
@@ -46,5 +55,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_02_124719) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
+  add_foreign_key "authors", "secret_messages"
+  add_foreign_key "authors", "users"
   add_foreign_key "secret_messages", "users", column: "owner_id"
 end

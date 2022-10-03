@@ -19,7 +19,7 @@ RSpec.describe "Api::SecretMessages", type: :request do
         end
       end
 
-      context 'ロールなし' do
+      context '家老ロールなし' do
         let(:karo) { create(:user, name: 'karo', password: 'ps') }
 
         it '失敗' do
