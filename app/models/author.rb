@@ -19,6 +19,6 @@
 #  user_id            (user_id => users.id)
 #
 class Author < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
   belongs_to :secret_message
 end

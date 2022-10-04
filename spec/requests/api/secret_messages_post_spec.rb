@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Api::SecretMessages", type: :request do
-  let(:karo) { {} }
+  let(:samurai) { {} }
   let(:request_body) do
     {
       title: '新規タイトル',
@@ -14,17 +14,17 @@ RSpec.describe "Api::SecretMessages", type: :request do
 
   describe "POST /api/select_messages" do
     context '正しいAuthorizationヘッダあり' do
-      let(:valid_basic_auth) { ActionController::HttpAuthentication::Basic.encode_credentials(karo.name, karo.password) }
+      let(:valid_basic_auth) { ActionController::HttpAuthentication::Basic.encode_credentials(samurai.name, samurai.password) }
 
       subject do
         post api_secret_messages_path, params: params, headers: { HTTP_AUTHORIZATION: valid_basic_auth }.merge(header)
       end
 
       context '家老ロール' do
-        let(:karo) { create(:chief_retainer, name: 'karo', password: 'ps') }
+        let!(:samurai) { create(:chief_retainer, name: 'samurai', password: 'ps') }
 
         it '成功' do
-          karo.add_role :chief_retainer
+          samurai.add_role :chief_retainer
 
           subject
 
@@ -32,23 +32,33 @@ RSpec.describe "Api::SecretMessages", type: :request do
         end
 
         it 'DBに登録されている' do
-          karo.add_role :chief_retainer
+          samurai.add_role :chief_retainer
 
           expect { subject }.to change {SecretMessage.first}
                                   .from(nil)
                                   .to(have_attributes(
                                         title: '新規タイトル',
                                         description: '新規説明',
-                                        owner: karo
+                                        owner: samurai
                                       ))
         end
       end
 
-      context '家老ロールなし' do
-        let(:karo) { create(:user, name: 'karo', password: 'ps') }
+      context '奉行ロール' do
+        let!(:samurai) { create(:magistrate, name: 'samurai', password: 'ps') }
 
         it '失敗' do
-          get api_secret_messages_path, headers: { HTTP_AUTHORIZATION: valid_basic_auth }
+          post api_secret_messages_path, headers: { HTTP_AUTHORIZATION: valid_basic_auth }
+
+          expect(response).to have_http_status(403)
+        end
+      end
+
+      context 'ロールなし' do
+        let!(:samurai) { create(:user, name: 'samurai', password: 'ps') }
+
+        it '失敗' do
+          post api_secret_messages_path, headers: { HTTP_AUTHORIZATION: valid_basic_auth }
 
           expect(response).to have_http_status(403)
         end

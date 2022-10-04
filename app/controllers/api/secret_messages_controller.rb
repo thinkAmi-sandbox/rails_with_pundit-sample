@@ -2,7 +2,9 @@ class Api::SecretMessagesController < BasicAuthController
   def index
     authorize SecretMessage
 
-    render json: SecretMessage.all
+    records = policy_scope(SecretMessage, policy_scope_class: Api::SecretMessagePolicy::Scope)
+
+    render json: records
   end
 
   def create
