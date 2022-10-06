@@ -1,17 +1,60 @@
 class Api::SecretMessagePolicy < ApplicationPolicy
   class Scope < Scope
     def resolve
-      # 外側の Api::SecretMessagePolicy の chief_retainer? は参照できない
       if user.has_role? :chief_retainer
-        scope.all
-      else
-        scope.joins(:authors).where(authors: {user: user})
+        return scope.all
       end
+
+      # 上段: 自分がauthor
+      # 下段: 同じ派閥の家老がauthor
+      scope.joins(authors: [user: :faction])
+           .where(authors: {users: user})
+           .or(scope.joins(authors: [user: :faction]).where(
+             authors: {
+              users: {
+                id: User.with_role(:chief_retainer).select('users.id'),
+                factions: {
+                  id: user.faction.id
+                }
+              }
+            }
+           ))
+           .distinct # 1つのsecret_messagesに対しfactionが等しいauthorが複数いる時のためdistinctする
+
+      # => to_sqlした結果
+      # SELECT
+      #     DISTINCT "secret_messages".*
+      # FROM
+      #     "secret_messages"
+      #     INNER JOIN "authors" ON "authors"."secret_message_id" = "secret_messages"."id"
+      #     INNER JOIN "users" ON "users"."id" = "authors"."user_id"
+      #     INNER JOIN "factions" ON "factions"."id" = "users"."faction_id"
+      # WHERE
+      #     (
+      #         "authors"."user_id" = 1
+      #         OR "users"."id" IN (
+      #             SELECT
+      #                 "users"."id"
+      #             FROM
+      #                 "users"
+      #                 INNER JOIN "users_roles" ON "users_roles"."user_id" = "users"."id"
+      #                 INNER JOIN "roles" ON "roles"."id" = "users_roles"."role_id"
+      #             WHERE
+      #                 (
+      #                     (
+      #                         (roles.name = 'chief_retainer')
+      #                         AND (roles.resource_type IS NULL)
+      #                         AND (roles.resource_id IS NULL)
+      #                     )
+      #                 )
+      #         )
+      #         AND "factions"."id" = 1
+      #     )
     end
   end
 
   def index?
-    chief_retainer? || magistrate?
+    chief_retainer? || magistrate_author? || belonging_to_faction?
   end
 
   def create?
@@ -22,7 +65,7 @@ class Api::SecretMessagePolicy < ApplicationPolicy
     author? && (chief_retainer? || magistrate?)
   end
 
-  private def chief_retainer?
+  def chief_retainer?
     user.has_role? :chief_retainer
   end
 
@@ -32,5 +75,17 @@ class Api::SecretMessagePolicy < ApplicationPolicy
 
   private def author?
     record.authors.exists?(user: user)
+  end
+
+  private def magistrate_author?
+    # 直接&&するとfalseが返ってくるので、一時変数に入れて&&する
+    x = user.has_role? :magistrate
+    y = record.joins(authors: [:user]).exists?(authors: { users: { id: user.id } })
+
+    x && y
+  end
+
+  private def belonging_to_faction?
+    user.faction.present?
   end
 end

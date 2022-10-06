@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_10_03_110255) do
+ActiveRecord::Schema[7.0].define(version: 2022_10_04_232303) do
   create_table "authors", force: :cascade do |t|
     t.integer "user_id"
     t.integer "secret_message_id", null: false
@@ -18,6 +18,12 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_110255) do
     t.datetime "updated_at", null: false
     t.index ["secret_message_id"], name: "index_authors_on_secret_message_id"
     t.index ["user_id"], name: "index_authors_on_user_id"
+  end
+
+  create_table "factions", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "roles", force: :cascade do |t|
@@ -45,6 +51,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_110255) do
     t.text "password"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "faction_id"
+    t.index ["faction_id"], name: "index_users_on_faction_id"
   end
 
   create_table "users_roles", id: false, force: :cascade do |t|
@@ -58,4 +66,5 @@ ActiveRecord::Schema[7.0].define(version: 2022_10_03_110255) do
   add_foreign_key "authors", "secret_messages"
   add_foreign_key "authors", "users"
   add_foreign_key "secret_messages", "users", column: "owner_id"
+  add_foreign_key "users", "factions"
 end
