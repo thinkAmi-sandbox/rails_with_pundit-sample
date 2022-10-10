@@ -5,14 +5,14 @@ class Api::SecretMessagePolicy < ApplicationPolicy
         return scope.all
       end
 
-      # 上段: 自分がauthor
-      # 下段: 同じ派閥の家老がauthor
+      # 一つ目のwhere: 自分がauthor
+      # or以降: 同じ派閥の家老がauthor
       scope.joins(authors: [user: :faction])
            .where(authors: {users: user})
            .or(scope.joins(authors: [user: :faction]).where(
              authors: {
               users: {
-                id: User.with_role(:chief_retainer).select('users.id'),
+                id: User.with_role(:chief_retainer).select(:id),
                 factions: {
                   id: user.faction.id
                 }
@@ -54,7 +54,7 @@ class Api::SecretMessagePolicy < ApplicationPolicy
   end
 
   def index?
-    chief_retainer? || magistrate_author? || belonging_to_faction?
+    chief_retainer? || magistrate? || belonging_to_faction?
   end
 
   def create?
@@ -65,7 +65,7 @@ class Api::SecretMessagePolicy < ApplicationPolicy
     author? && (chief_retainer? || magistrate?)
   end
 
-  def chief_retainer?
+  private def chief_retainer?
     user.has_role? :chief_retainer
   end
 

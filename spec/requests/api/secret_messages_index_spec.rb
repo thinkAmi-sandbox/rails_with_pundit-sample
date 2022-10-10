@@ -10,7 +10,7 @@ RSpec.describe "Api::SecretMessages", type: :request do
     let!(:another_message) { create(:secret_message, owner: samurai, title: 'another') }
 
     shared_examples 'すべて閲覧できる' do
-      it '' do
+      it do
         get api_secret_messages_path, headers: { HTTP_AUTHORIZATION: valid_basic_auth }
 
         expect(response).to have_http_status(200)
